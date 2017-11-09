@@ -9,6 +9,18 @@ module RedmineWebhook
       return false
     end
 
+
+    def controller_wiki_edit_after_save(context = { })
+      return if skip_webhooks(context)
+      wiki = context[:page]
+      controller = context[:controller]
+      project = context[:project]
+      webhooks = Webhook.where(:project_id => project.project.id)
+      webhooks = Webhook.where(:project_id => 0) unless webhooks && webhooks.length > 0
+      return unless webhooks
+      post(webhooks, wiki_to_json(wiki, controller, project))
+    end
+
     def controller_issues_new_after_save(context = {})
       return if skip_webhooks(context)
       issue = context[:issue]
@@ -63,6 +75,17 @@ module RedmineWebhook
         }
       }.to_json
     end
+
+    def wiki_to_json(wiki, controller, project)
+      {
+        :payload => {
+          :action => 'updated_wiki',
+          :issue => RedmineWebhook::WikiWrapper.new(wiki).to_hash,
+          :url => url_for(:controller => 'wiki', :action => 'show', :id => wiki.title, :project => project)
+        }
+      }.to_json
+    end
+
 
     def journal_to_json(issue, journal, controller)
       {
