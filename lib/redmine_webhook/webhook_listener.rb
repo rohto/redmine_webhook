@@ -81,7 +81,7 @@ module RedmineWebhook
         :payload => {
           :action => 'updated_wiki',
           :issue => RedmineWebhook::WikiWrapper.new(wiki).to_hash,
-          :url => url_for(:controller => 'wiki', :action => 'show', :id => wiki.title, :project => project)
+          :url => controller.url_for(:controller => 'wiki', :action => 'show', :id => wiki.title, :project => project)
         }
       }.to_json
     end
