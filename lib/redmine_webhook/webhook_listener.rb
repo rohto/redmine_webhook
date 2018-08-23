@@ -73,7 +73,7 @@ module RedmineWebhook
           :issue => RedmineWebhook::IssueWrapper.new(issue).to_hash,
           :url => controller.issue_url(issue)
         }
-      }.to_json
+      }
     end
 
     def wiki_to_json(wiki, controller, project)
@@ -83,7 +83,7 @@ module RedmineWebhook
           :issue => RedmineWebhook::WikiWrapper.new(wiki).to_hash,
           :url => controller.url_for(:controller => 'wiki', :action => 'show', :id => wiki.title, :project => project)
         }
-      }.to_json
+      }
     end
 
 
@@ -95,7 +95,7 @@ module RedmineWebhook
           :journal => RedmineWebhook::JournalWrapper.new(journal).to_hash,
           :url => controller.nil? ? 'not yet implemented' : controller.issue_url(issue)
         }
-      }.to_json
+      }
     end
 
     def post(webhooks, request_body)
@@ -105,7 +105,9 @@ module RedmineWebhook
             Faraday.post do |req|
               req.url webhook.url
               req.headers['Content-Type'] = 'application/json'
-              req.body = request_body
+              channel = {:id => webhook.channel_id}
+              request_body[:payload][:channel] = channel
+              req.body = request_body.to_json
             end
           rescue => e
             Rails.logger.error e
